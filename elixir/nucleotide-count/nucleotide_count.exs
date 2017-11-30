@@ -32,6 +32,8 @@ defmodule NucleotideCount do
   @spec histogram([char]) :: map
   def histogram(strand) do
     # kind like js/ramda's transform
-    Map.new(@nucleotides, &({&1, Enum.count(strand, &1)}))
+    @nucleotides
+    |> Map.new(&({&1, count(strand, &1)}))
+    # Map.new(@nucleotides, &({&1, Enum.count(strand, &1)}))
   end
 end
