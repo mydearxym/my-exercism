@@ -25,10 +25,11 @@ defmodule ProteinTranslation do
   @spec of_rna(String.t()) :: { atom,  list(String.t()) }
   def of_rna(rna) do
     rna
-    |> String.to_charlist
-    |> Enum.chunk_every(3)
-    |> Enum.map(& get_codon(&1))
+    |> to_charlist
+    |> Stream.chunk_every(3)
+    |> Stream.map(&get_codon/1)
     |> Enum.take_while(R.not_equal("STOP"))
+    # |> Enum.take_while(&(String.equivalent?(&1, "STOP") ))
     |> datapack
   end
 
@@ -89,6 +90,9 @@ end
 
 # http://blog.patrikstorm.com/function-currying-in-elixir
 defmodule R do
+  # @spec of_codon(String.t()) :: { atom, String.t() }
+
+  @spec not_equal(String.t()) :: (String.t() -> any)
   def not_equal(target) do
     R.curry(
       fn source ->
@@ -97,6 +101,7 @@ defmodule R do
     )
   end
 
+  @spec not_equal(any) :: (any -> any)
   def is_nil() do
     R.curry(
       fn val ->
@@ -105,15 +110,18 @@ defmodule R do
     )
   end
 
+  @spec curry(function) :: (any -> any)
   def curry(fun) when is_function(fun) do
     {_, arity} = :erlang.fun_info(fun, :arity)
     curry(fun, arity, [])
   end
 
+  @spec curry(function) :: (any -> any)
   def curry(fun, 0, arguments) when is_function(fun) do
     apply(fun, Enum.reverse arguments)
   end
 
+  @spec curry(function) :: (any -> any)
   def curry(fun, arity, arguments) when is_function(fun) do
     fn arg -> curry(fun, arity - 1, [arg | arguments]) end
   end
